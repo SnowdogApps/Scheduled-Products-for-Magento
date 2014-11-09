@@ -50,8 +50,7 @@
     <jobs>
       <valsamonte_scheduledproduct_process_schedule>
         <schedule>
-          <!-- Schedule for every 5 minutes -->
-          <cron_expr>*/5 * * * *</cron_expr>
+          <cron_expr>*/10 * * * *</cron_expr>
         </schedule>
         <run>
           <model>valsamonte_scheduledproduct/observer::cronProcessScheduledProducts</model>
