@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<config>
+  <modules>
+    <ValSamonte_ScheduledProduct>
+      <version>0.0.1</version>
+    </ValSamonte_ScheduledProduct>
+  </modules>
+  <global>
+    <models>
+      <valsamonte_scheduledproduct>
+        <class>ValSamonte_ScheduledProduct_Model</class>
+      </valsamonte_scheduledproduct>
+    </models>
+    <resources>
+      <valsamonte_scheduledproduct_setup>
+        <setup>
+          <module>ValSamonte_ScheduledProduct</module>
+          <class>ValSamonte_ScheduledProduct_Model_Mysql4_Setup</class>
+        </setup>
+        <connection>
+          <use>catalog_setup</use>
+        </connection>
+      </valsamonte_scheduledproduct_setup>
+    </resources>
+  </global>
+  <adminhtml>
+    <events>
+      <adminhtml_catalog_product_edit_prepare_form>
+        <observers>
+          <valsamonte_scheduledproduct>
+            <type>singleton</type>
+            <model>valsamonte_scheduledproduct/observer</model>
+            <method>observeProductEditFortInitialization</method>
+          </valsamonte_scheduledproduct>
+        </observers>
+      </adminhtml_catalog_product_edit_prepare_form>
+    </events>
+  </adminhtml>
+  <crontab>
+    <jobs>
+      <valsamonte_scheduledproduct_process_schedule>
+        <schedule>
+          <!-- Schedule for every 5 minutes -->
+          <cron_expr>*/5 * * * *</cron_expr>
+        </schedule>
+        <run>
+          <model>valsamonte_scheduledproduct/observer::cronProcessScheduledProducts</model>
+        </run>
+      </valsamonte_scheduledproduct_process_schedule>
+    </jobs>
+  </crontab>
+</config>
