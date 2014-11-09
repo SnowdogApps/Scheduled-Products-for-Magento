@@ -23,6 +23,15 @@
         </connection>
       </valsamonte_scheduledproduct_setup>
     </resources>
+    <template>
+      <email>
+        <expired_product_email_template translate="label" module="scheduledproduct">
+          <label>Globalpay Confirmation Template</label>
+          <file>valsamonte/scheduledproduct/expired_product.html</file>
+          <type>html</type>
+        </expired_product_email_template>
+      </email>
+    </template>
   </global>
   <adminhtml>
     <events>

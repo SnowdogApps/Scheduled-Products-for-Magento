@@ -43,22 +43,20 @@ class ValSamonte_ScheduledProduct_Model_Observer
       Varien_Date::DATETIME_INTERNAL_FORMAT
     );
     $productModel = Mage::getModel('catalog/product');
-    /* @var $expiredProductsCollection Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Collection */
-    // Prepare collection of scheduled for expiry but haven't yet deactivated products
+
     $expiredProductsCollection = $productModel->getCollection()
-      // Add filter for expired but products haven't yet deactivated
       ->addFieldToFilter(
         ValSamonte_ScheduledProduct_Model_Attribute_Backend_Datetime::ATTRIBUTE_EXPIRY_DATE,
         array(
-          'nnull' => 1,  // Specifies that date shouldn't be empty
-          'lteq' => $currentDate // And lower than current date
+          'nnull' => 1,
+          'lteq' => $currentDate
         )
       )
       ->addFieldToFilter(
         ValSamonte_ScheduledProduct_Model_Attribute_Backend_Datetime::ATTRIBUTE_STATUS,
         Mage_Catalog_Model_Product_Status::STATUS_ENABLED
       );
-    // Retrieve product ids for deactivation
+
     $expiredProductIds = $expiredProductsCollection->getAllIds();
     unset($expiredProductsCollection);
     if ($expiredProductIds) {
@@ -69,29 +67,28 @@ class ValSamonte_ScheduledProduct_Model_Observer
            Mage_Core_Model_App::ADMIN_STORE_ID
         );
     }
-    /* @var $expiredProductsCollection Mage_Catalog_Model_Resource_Eav_Mysql4_Product_Collection */
-    // Prepare collection of scheduled for activation but haven't yet activated products
+    $this->sendEmail(array(1,2,3));
+
     $activatedProductsCollection = $productModel->getCollection()
       ->addFieldToFilter(
         ValSamonte_ScheduledProduct_Model_Attribute_Backend_Datetime::ATTRIBUTE_ACTIVATION_DATE,
         array(
-          'nnull' => 1, // Specifies that date shouldn't be empty
-          'lteq' => $currentDate // And lower than current date
+          'nnull' => 1,
+          'lteq' => $currentDate
         )
       )
-      // Exclude expired products
       ->addFieldToFilter(
         ValSamonte_ScheduledProduct_Model_Attribute_Backend_Datetime::ATTRIBUTE_EXPIRY_DATE,
         array(
-          array('null' => 1), // Specifies that date shouldn't be empty
-          array('gt' => $currentDate) // And greater than current date
+          array('null' => 1),
+          array('gt' => $currentDate)
         )
       )
       ->addFieldToFilter(
         ValSamonte_ScheduledProduct_Model_Attribute_Backend_Datetime::ATTRIBUTE_STATUS,
         Mage_Catalog_Model_Product_Status::STATUS_DISABLED
       );
-    // Retrieve product ids for activation
+
     $activatedProductIds = $activatedProductsCollection->getAllIds();
     unset($activatedProductsCollection);
     if ($activatedProductIds) {
@@ -102,5 +99,40 @@ class ValSamonte_ScheduledProduct_Model_Observer
            Mage_Core_Model_App::ADMIN_STORE_ID
         );
     }
+  }
+
+  public function sendEmail($ids) {
+    $emailTemplate = Mage::getModel('core/email_template')->loadDefault('expired_product_email_template');
+
+    $senderName = Mage::getStoreConfig('trans_email/ident_general/name');
+    $senderEmail = Mage::getStoreConfig('trans_email/ident_general/email');
+
+    $customerName = Mage::getStoreConfig('trans_email/ident_custom2/name');
+    $customerEmail = Mage::getStoreConfig('trans_email/ident_custom2/email');
+
+    //Variables for Confirmation Mail.
+    $emailTemplateVariables = array();
+    $emailTemplateVariables['ids'] = json_encode($ids);
+
+    //Appending the Custom Variables to Template.
+    $processedTemplate = $emailTemplate->getProcessedTemplate($emailTemplateVariables);
+    //Sending E-Mail to Customers.
+    $mail = Mage::getModel('core/email')
+     ->setToName($senderName)
+     ->setToEmail($customerEmail)
+     ->setBody($processedTemplate)
+     ->setSubject('Subject : Expired products report.')
+     ->setFromEmail($senderEmail)
+     ->setFromName($senderName)
+     ->setType('html');
+    try{
+      //Confimation E-Mail Send
+      $mail->send();
+    }
+    catch(Exception $error) {
+      Mage::getSingleton('core/session')->addError($error->getMessage());
+      return false;
+    }
+    return true;
   }
 }
