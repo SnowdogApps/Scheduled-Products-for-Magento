@@ -66,8 +66,9 @@ class ValSamonte_ScheduledProduct_Model_Observer
            array('status' => Mage_Catalog_Model_Product_Status::STATUS_DISABLED),
            Mage_Core_Model_App::ADMIN_STORE_ID
         );
+      $this->sendEmail($expiredProductIds);
+      Mage::log($expiredProductIds);
     }
-    $this->sendEmail(array(1,2,3));
 
     $activatedProductsCollection = $productModel->getCollection()
       ->addFieldToFilter(
@@ -98,10 +99,12 @@ class ValSamonte_ScheduledProduct_Model_Observer
            array('status' => Mage_Catalog_Model_Product_Status::STATUS_ENABLED),
            Mage_Core_Model_App::ADMIN_STORE_ID
         );
+      Mage::log($activatedProductIds);
     }
   }
 
   public function sendEmail($ids) {
+
     $emailTemplate = Mage::getModel('core/email_template')->loadDefault('expired_product_email_template');
 
     $senderName = Mage::getStoreConfig('trans_email/ident_general/name');
@@ -125,6 +128,7 @@ class ValSamonte_ScheduledProduct_Model_Observer
      ->setFromEmail($senderEmail)
      ->setFromName($senderName)
      ->setType('html');
+
     try{
       //Confimation E-Mail Send
       $mail->send();
